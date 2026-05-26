@@ -42,10 +42,10 @@ copy /Y %PKG%.pdf  %CTANDIR%\  > nul
 copy /Y README.    %CTANDIR%\README.md > nul
 
 :: author template
-mkdir %CTANDIR%\author
-copy /Y author\author.tex  %CTANDIR%\author\ > nul
-copy /Y author\author.bib  %CTANDIR%\author\ > nul
-copy /Y author\LionTeX.png %CTANDIR%\author\ > nul
+rem mkdir %CTANDIR%\author
+rem copy /Y author\author.tex  %CTANDIR%\author\ > nul
+rem copy /Y author\author.bib  %CTANDIR%\author\ > nul
+rem copy /Y author\LionTeX.png %CTANDIR%\author\ > nul
 
 :: ---- 4. Create zip ------------------------------------------
 echo Zipping...
