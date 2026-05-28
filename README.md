@@ -35,7 +35,3 @@ The Current Maintainer is Sergiy Ponomarenko.
 - `iptconf.cls`  — derived class file (generated from `.dtx`)
 - `iptconf-author.tex` — example author template
 - `README.md`    — this file
-
-## Installation
-
-Run the installation script to extract the class file:

@@ -27,8 +27,9 @@
 %
 % \iffalse
 %<*driver>
-\ProvidesFile{iptconf.dtx}[2026/05/24 v1.0 IPT conference class]
+\ProvidesFile{iptconf.dtx}[2026/05/28 v1.2 IPT conference class]
 \documentclass{l3doc}
+\GetFileInfo{iptconf.dtx}
 \usepackage{fontspec}
   \setmainfont{CMU Serif}
   \setmonofont{CMU Typewriter Text}
@@ -52,8 +53,11 @@
 % \fi
 %
 % \changes{v1.0}{2026/05/24}{First public release on CTAN}
-%
-% \GetFileInfo{iptconf.dtx}
+% \changes{v1.1}{2026/05/28}{%
+%   \cs{writearticleinfo}: added \texttt{language}, \texttt{year},
+%   and \texttt{udc} fields to the generated YAML metadata file}
+% \changes{v1.2}{2026/05/28}{%
+%   Changed fonts to CMU (Computer Modern Unicode) for better consistency across}
 %
 % \DoNotIndex{\newcommand,\renewcommand,\providecommand}
 % \DoNotIndex{\begin,\end,\par,\noindent,\vskip,\vspace}
@@ -61,10 +65,13 @@
 % \DoNotIndex{\@ne,\z@,\@empty,\@maketitle}
 %
 %^^A ===========================================================
-% \title{%
-%   The \pkg{iptconf} class\thanks{This document describes
-%   \pkg{iptconf}~\fileversion, last revised~\filedate.}
-% }
+% 
+% % \title{^^A
+%     The \pkg{iptconf} class\thanks{^^A
+%        This file describes version \fileversion, last revised \filedate.}\\[0.5em]^^A
+%       \large Version \fileversion
+%      }^^A
+
 % \author{%
 %   Sergiy Ponomarenko\\
 %   \href{mailto:s.ponomarenko@kpi.ua}
@@ -150,7 +157,12 @@
 % \subsection{Minimal document}
 %
 % \begin{verbatim}
-% \documentclass[single=3]{iptconf}   % standalone, starting at page 3
+% 
+% % !TeX program = lualatex
+% % !TeX encoding = utf8
+% % !BIB TS-program = biber
+%
+% \documentclass{iptconf}
 %
 % \title{Title of the Paper}
 %
@@ -161,9 +173,9 @@
 % \affiliation{Another University}{2}
 %
 % \udc{537.8}
-% \pacs{41.20.-q}
-% \keywords{Maxwell equations, wave propagation}
+% % or \pacs{41.20.-q}
 % \abstract{Short abstract text.}
+% \keywords{Maxwell equations, wave propagation}
 %
 % \regform{
 %   fullname       = Petro Ivanovych Kovalenko,
@@ -178,10 +190,14 @@
 % }
 %
 % \begin{document}
-% \PaperLanguage{ukrainian}
+% 
+% \PaperLanguage{english}
 %
-% \section{Introduction}
+% \section*{Introduction}
 % ...
+% \section{Methods}
+% ...
+% \section*{Conclusion}
 %
 % \end{document}
 % \end{verbatim}
@@ -311,8 +327,10 @@
 % We require a recent kernel and load as an \pkg{expl3} class.
 %    \begin{macrocode}
 \NeedsTeXFormat{LaTeX2e}[2022-06-01]
-\ProvidesFile{iptconf.cls}[2026/05/24 v1.0 IPT conference class]
-\ProvidesExplClass{iptconf}{2026-05-24}{1.0}
+\def\filedate{2026/05/28}
+\def\fileversion{v1.2}
+\ProvidesFile{iptconf.cls}[\filedate\space\fileversion\space IPT conference class]
+\ProvidesExplClass{iptconf}{\filedate}{\fileversion}
   {IPT conference class (Institute of Physics and Technology, KPI)}
 \LoadClass[twocolumn, oneside]{article}[2022-06-01]
 %    \end{macrocode}
@@ -372,31 +390,26 @@
 % falls back to Type\,1 fonts with the OpenSans sans-serif family.
 %
 %    \begin{macrocode}
+\RequirePackage{csquotes}
+\RequirePackage[english, ukrainian]{babel}
 \bool_lazy_or:nnTF
   { \sys_if_engine_luatex_p: }
   { \sys_if_engine_xetex_p:  }
   {
-    \RequirePackage{mathtools}
-    \RequirePackage[default]{fontsetup}
-    \RequirePackage
-      [protrusion=true, tracking=true, babel=true]
-      {microtype}
+    \RequirePackage{fontspec}
+    \setsansfont{Open Sans}
+    \setmainfont{CMU Serif}
+    \setmonofont{CMU Typewriter Text}
   }
   {
     \RequirePackage[T2A,T1]{fontenc}
     \RequirePackage{cmap}
     \renewcommand\sfdefault{opensans-LF}
     \renewcommand\bfdefault{b}
-    \RequirePackage
-      [protrusion=true, expansion, tracking=true,
-       kerning=true, spacing=true, babel=true]
-      {microtype}
-    \RequirePackage{mathtools}
-    \RequirePackage{amssymb}
   }
-
-\RequirePackage{csquotes}
-\RequirePackage[english, russian, ukrainian]{babel}
+\RequirePackage{mathtools}
+\RequirePackage{amssymb}
+\RequirePackage[patch=footnote]{microtype}
 %    \end{macrocode}
 %
 % Make |\boldmath| active inside |\bfseries| so that bold text in
@@ -1078,7 +1091,16 @@
 % \begin{macro}{\writearticleinfo}
 %   Writes structured YAML article metadata to
 %   \texttt{\textit{jobname}-info.yaml}.  Mathematical macros and
-%   special tokens are purified before output.
+%   special tokens are purified before output.  The generated file
+%   contains the following fields in order:
+%   \texttt{title}, \texttt{language}, \texttt{year},
+%   \texttt{speaker}, \texttt{udc}, \texttt{section},
+%   \texttt{authors} (list), \texttt{affiliations} (list),
+%   \texttt{abstract}, \texttt{keywords} (list).
+%   The \texttt{language} value is taken from the active
+%   \pkg{babel} language at the time |\PaperLanguage| is called;
+%   \texttt{year} is the current calendar year; \texttt{udc}
+%   is the code supplied to |\udc|.
 %    \begin{macrocode}
 \NewDocumentCommand \writearticleinfo {} {
 
@@ -1125,7 +1147,13 @@
   \iow_now:Nx \g_iptconf_regform_iow
     { title: ~ " \text_purify:n { \l_cleantitle_tl } " }
   \iow_now:Nx \g_iptconf_regform_iow
+    { language: ~ \languagename }
+  \iow_now:Nx \g_iptconf_regform_iow
+    { year: ~ \the\year }
+  \iow_now:Nx \g_iptconf_regform_iow
     { speaker: ~ " \str_use:N \l_iptconf_fullname_str " }
+  \iow_now:Nx \g_iptconf_regform_iow
+    { udc: ~ " \tl_use:N \l_iptconf_udc_tl " }
   \iow_now:Nx \g_iptconf_regform_iow
     { section: ~ " \str_use:N \l_iptconf_confsection_str " }
 
